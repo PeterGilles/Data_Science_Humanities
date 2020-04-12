@@ -1,0 +1,69 @@
+---
+title: "Data science in the Humanities"
+author: "Peter Gilles"
+output:
+  tufte::tufte_html: default
+  #tufte::tufte_handout: default
+---
+
+29. April 2020, University of Luxembourg
+
+# Preamble {-}
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+This handout contains all output of the code (tables, visualisations etc.).
+
+The following libraries will be needed and have to be installed.
+```{r}
+library(tidyverse)
+library(ggiraph)
+library(cowplot)
+library(emuR)
+library(tools)
+library(readxl)
+library(ggplot2)
+library(magrittr)
+library(ggiraph)
+library(htmltools)
+library(shiny)
+library(joeyr, warn.conflicts = FALSE )
+```
+
+This tutorial will demonstrate how to analyse audio data for phonetic studies in R. Topics covered are:
+- phonetic databases, the case of emuR and EMU-SDMS
+- provide a sample data base (subset of the LOD database)
+- present the LOD database
+- do queries
+  requeries
+- serve()
+- overview of the database
+  segments, categories
+- calculate duration
+- vowels formants
+- Pillai distance
+
+# LOD database
+```{r}
+db = load_emuDB("/Users/peter.gilles/Documents/_Daten/LOD-emuDB/lod_emuDB")
+summary(db)
+```
+
+```{r}
+list_ssffTrackDefinitions(db)
+```
+
+```{r}
+list_attrDefLabelGroups(db, "MAU", "MAU")
+```
+
+
+# Vowel explorer
+```{r}
+knitr::include_app("https://petergill.shinyapps.io/shinyplay/")
+```
+
+# Calculate the Pillai distance
+
+
+
