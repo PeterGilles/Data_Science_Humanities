@@ -1,18 +1,17 @@
 ---
-title: "Data science in the Humanities"
+subtitle: "Lecture for class: Data science in the Humanities"
+title: "Big data-Analysis of phonetic data"
 author: "Peter Gilles"
 output:
   tufte::tufte_html: default
-  #tufte::tufte_handout: default
+  tufte::tufte_handout: default
 ---
 
-29. April 2020, University of Luxembourg
+29. April 2020, 14h00 - 15h00, University of Luxembourg
 
 # Preamble {-}
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
-This handout contains all output of the code (tables, visualisations etc.).
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.).
 
 The following libraries will be needed and have to be installed.
 ```{r}
@@ -21,13 +20,14 @@ library(ggiraph)
 library(cowplot)
 library(emuR)
 library(tools)
-library(readxl)
+library(rio)
 library(ggplot2)
 library(magrittr)
 library(ggiraph)
 library(htmltools)
 library(shiny)
 library(joeyr, warn.conflicts = FALSE )
+library(knitr)
 ```
 
 This tutorial will demonstrate how to analyse audio data for phonetic studies in R. Topics covered are:
@@ -57,7 +57,47 @@ list_ssffTrackDefinitions(db)
 list_attrDefLabelGroups(db, "MAU", "MAU")
 ```
 
+# Database queries
 
+An emuR database can be queried with a powerful query engine. The first example is a simple query for one word, `Aarbecht`.
+
+```{r}
+sl = query(db, query = "[ ORT == 'Aarbecht']")
+sl
+```
+
+The result is a `segment list` (`sl`), containing various information about the found item (time, level, name, database info). The result of the query can also be displayed in the EMU Speech Database Management System. Use: `serve(db, seglist = sl)`. The GUI will open in the `Viewer` pane of RStudio or you can open it in a browser (Chrome preferred).
+
+```{r echo=FALSE}
+knitr::include_graphics(rep("emu-sdms.png"))
+```
+
+Here we can also display the hiearchical structure for this database item, which is accessed during queries. `bundle` is the top-level, representing the entire audio file. The `ORT` level contains the nodes for the individual words in the `bundle`, here the two words `Aarbecht` and `Aarbechten`. The dependend level then is `MAU` (=`Munich Automatic Unit`) representing the single sounds of the words in `ORT`. 
+
+```{r echo=FALSE}
+knitr::include_graphics(rep("hierarchy.png"))
+```
+
+Two aspects render emuR query system extremly powerful: the use of regular expressions (including negation and other extensions) and the combinated query on different levels of the database.
+
+Some more complex queries:
+
+- regular expression, operator `=~`, words beginning with `Aarbecht...`
+```{r}
+sl = query(db, query = "[ ORT =~ 'Aarbecht.*']")
+sl
+```
+
+Select the vowel [aː] in all words beginning with `Aarbecht`... Note that in the segment list the label now has changed to the vowel and the respective start-end information is now only for this sound [aː].
+
+```{r}
+sl = query(db, query = "[ ORT =~ 'Aarbecht.*' ^ #MAU=='aː']")
+sl
+```
+
+With the query the user can compile the data from the database which then forms the subset for the phonetic analysis. We can select e.g. all instances of certain (or all) vowels, specifying the context before or after etc. etc.
+
+Of course, querying for individual segments in the audio file like words or sounds, is possible only, if this information has been added to the database before.
 # Vowel explorer
 ```{r}
 knitr::include_app("https://petergill.shinyapps.io/shinyplay/")
