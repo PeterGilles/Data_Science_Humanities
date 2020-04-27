@@ -1,6 +1,12 @@
 ---
 subtitle: "Lecture for class: Data science in the Humanities"
 title: "Big data in the acoustic phonetic analysis"
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+ 
 author: "Peter Gilles"
 date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
 output:
