@@ -1,0 +1,428 @@
+{
+  "name": "INFORMATIOUNSGESELLSCHAFT1",
+  "annotates": "INFORMATIOUNSGESELLSCHAFT1.wav",
+  "sampleRate": 48000,
+  "levels": [
+        {
+          "name": "bundle",
+          "type": "ITEM",
+          "items": [
+              {
+                    "id": 0,
+                    "labels": [
+                        {
+                            "name": "bundle",
+                            "value": "INFORMATIOUNSGESELLSCHAFT1"
+                        },
+                        {
+                            "name": "source",
+                            "value": "maus"
+                        },
+                        {
+                            "name": "SAM",
+                            "value": "48000"
+                        },
+                        {
+                            "name": "MAO",
+                            "value": "VERSION=5.1,v=0,SIGNAL=/var/lib/tomcat7/webapps/BASWebServices##2.24//data//2018.12.16_15.01.57_ABE8F8A32BF66E3D937BFD094533701E/INFORMATIOUNSGESELLSCHAFT1.wav,BPF=/tmp/22175_1544970782_G2PBPFOUT.par,OUT=/var/lib/tomcat7/webapps/BASWebServices##2.24//data//2018.12.16_15.01.57_ABE8F8A32BF66E3D937BFD094533701E/INFORMATIOUNSGESELLSCHAFT1_annot.json,OUTFORMAT=emuDB,LANGUAGE=ltz-LU,RULESET=default,MINPAUSLEN=5,INSORTTEXTGRID=true,INSKANTEXTGRID=true,USETRN=false,PRESEG=false,OUTSYMBOL=ipa,NOINITIALFINALSILENCE=false,WEIGHT=default,INSPROB=0.0,STARTWORD=0,ENDWORD=999999,MODUS=standard,RELAXMINDUR=false,INSYMBOL=sampa,"
+                        }
+                    ]
+              }
+          ]
+        },
+        {
+          "name": "ORT",
+          "type": "ITEM",
+          "items": [
+              {
+                    "id": 1,
+                    "labels": [
+                        {
+                            "name": "ORT",
+                            "value": "Informatiounsgesellschaft"
+                        },
+                        {
+                            "name": "KAN",
+                            "value": "i n f O R m a t s j @U n s g @ s { l S A f t"
+                        }
+                    ]
+              }
+          ]
+        },
+        {
+          "name": "MAU",
+          "type": "SEGMENT",
+          "items": [
+              {
+                    "id": 2,
+                    "sampleStart": 0,
+                    "sampleDur": 7199,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "(...)"
+                        }
+                    ]
+              },
+              {
+                    "id": 3,
+                    "sampleStart": 7200,
+                    "sampleDur": 3359,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "i"
+                        }
+                    ]
+              },
+              {
+                    "id": 4,
+                    "sampleStart": 10560,
+                    "sampleDur": 2879,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "n"
+                        }
+                    ]
+              },
+              {
+                    "id": 5,
+                    "sampleStart": 13440,
+                    "sampleDur": 2879,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "f"
+                        }
+                    ]
+              },
+              {
+                    "id": 6,
+                    "sampleStart": 16320,
+                    "sampleDur": 3359,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "ɔ"
+                        }
+                    ]
+              },
+              {
+                    "id": 7,
+                    "sampleStart": 19680,
+                    "sampleDur": 1439,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "ʀ"
+                        }
+                    ]
+              },
+              {
+                    "id": 8,
+                    "sampleStart": 21120,
+                    "sampleDur": 2879,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "m"
+                        }
+                    ]
+              },
+              {
+                    "id": 9,
+                    "sampleStart": 24000,
+                    "sampleDur": 4319,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "a"
+                        }
+                    ]
+              },
+              {
+                    "id": 10,
+                    "sampleStart": 28320,
+                    "sampleDur": 1439,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "t"
+                        }
+                    ]
+              },
+              {
+                    "id": 11,
+                    "sampleStart": 29760,
+                    "sampleDur": 2879,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "s"
+                        }
+                    ]
+              },
+              {
+                    "id": 12,
+                    "sampleStart": 32640,
+                    "sampleDur": 2399,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "j"
+                        }
+                    ]
+              },
+              {
+                    "id": 13,
+                    "sampleStart": 35040,
+                    "sampleDur": 2879,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "əʊ"
+                        }
+                    ]
+              },
+              {
+                    "id": 14,
+                    "sampleStart": 37920,
+                    "sampleDur": 4799,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "n"
+                        }
+                    ]
+              },
+              {
+                    "id": 15,
+                    "sampleStart": 42720,
+                    "sampleDur": 1439,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "s"
+                        }
+                    ]
+              },
+              {
+                    "id": 16,
+                    "sampleStart": 44160,
+                    "sampleDur": 3839,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "ɡ"
+                        }
+                    ]
+              },
+              {
+                    "id": 17,
+                    "sampleStart": 48000,
+                    "sampleDur": 1439,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "ə"
+                        }
+                    ]
+              },
+              {
+                    "id": 18,
+                    "sampleStart": 49440,
+                    "sampleDur": 4319,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "s"
+                        }
+                    ]
+              },
+              {
+                    "id": 19,
+                    "sampleStart": 53760,
+                    "sampleDur": 5279,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "æ"
+                        }
+                    ]
+              },
+              {
+                    "id": 20,
+                    "sampleStart": 59040,
+                    "sampleDur": 3359,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "l"
+                        }
+                    ]
+              },
+              {
+                    "id": 21,
+                    "sampleStart": 62400,
+                    "sampleDur": 5279,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "ʃ"
+                        }
+                    ]
+              },
+              {
+                    "id": 22,
+                    "sampleStart": 67680,
+                    "sampleDur": 6239,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "ɑ"
+                        }
+                    ]
+              },
+              {
+                    "id": 23,
+                    "sampleStart": 73920,
+                    "sampleDur": 3839,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "f"
+                        }
+                    ]
+              },
+              {
+                    "id": 24,
+                    "sampleStart": 77760,
+                    "sampleDur": 5279,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "t"
+                        }
+                    ]
+              },
+              {
+                    "id": 25,
+                    "sampleStart": 83040,
+                    "sampleDur": 22943,
+                    "labels": [
+                        {
+                            "name": "MAU",
+                            "value": "(...)"
+                        }
+                    ]
+              }
+          ]
+        }
+    ],
+    "links": [
+        {
+            "fromID": 0,
+            "toID": 1
+        }
+,
+        {
+            "fromID": 0,
+            "toID": 2
+        },
+        {
+            "fromID": 1,
+            "toID": 3
+        },
+        {
+            "fromID": 1,
+            "toID": 4
+        },
+        {
+            "fromID": 1,
+            "toID": 5
+        },
+        {
+            "fromID": 1,
+            "toID": 6
+        },
+        {
+            "fromID": 1,
+            "toID": 7
+        },
+        {
+            "fromID": 1,
+            "toID": 8
+        },
+        {
+            "fromID": 1,
+            "toID": 9
+        },
+        {
+            "fromID": 1,
+            "toID": 10
+        },
+        {
+            "fromID": 1,
+            "toID": 11
+        },
+        {
+            "fromID": 1,
+            "toID": 12
+        },
+        {
+            "fromID": 1,
+            "toID": 13
+        },
+        {
+            "fromID": 1,
+            "toID": 14
+        },
+        {
+            "fromID": 1,
+            "toID": 15
+        },
+        {
+            "fromID": 1,
+            "toID": 16
+        },
+        {
+            "fromID": 1,
+            "toID": 17
+        },
+        {
+            "fromID": 1,
+            "toID": 18
+        },
+        {
+            "fromID": 1,
+            "toID": 19
+        },
+        {
+            "fromID": 1,
+            "toID": 20
+        },
+        {
+            "fromID": 1,
+            "toID": 21
+        },
+        {
+            "fromID": 1,
+            "toID": 22
+        },
+        {
+            "fromID": 1,
+            "toID": 23
+        },
+        {
+            "fromID": 1,
+            "toID": 24
+        },
+        {
+            "fromID": 0,
+            "toID": 25
+        }
+
+
+    ]
+}

@@ -1,0 +1,144 @@
+{
+  "name": "lod",
+  "UUID": "c87793c0-012a-11e9-874b-68b599b5deb4",
+  "mediafileExtension": "wav",
+  "ssffTrackDefinitions": [
+    {
+      "name": "dft",
+      "columnName": "dft",
+      "fileExtension": "dft"
+    },
+    {
+      "name": "praatFms",
+      "columnName": "fm",
+      "fileExtension": "praatFms"
+    }
+  ],
+  "levelDefinitions": [
+    {
+      "name": "bundle",
+      "type": "ITEM",
+      "attributeDefinitions": [
+        {
+          "name": "bundle",
+          "type": "STRING"
+        },
+        {
+          "name": "source",
+          "type": "STRING"
+        },
+        {
+          "name": "SAM",
+          "type": "STRING"
+        },
+        {
+          "name": "MAO",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "ORT",
+      "type": "ITEM",
+      "attributeDefinitions": [
+        {
+          "name": "ORT",
+          "type": "STRING"
+        },
+        {
+          "name": "KAN",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "MAU",
+      "type": "SEGMENT",
+      "attributeDefinitions": [
+        {
+          "name": "MAU",
+          "type": "STRING",
+          "labelGroups": [
+            {
+              "name": "longMonophthongs",
+              "values": [
+                "iː",
+                "uː",
+                "aː",
+                "oː",
+                "ɔː",
+                "ɛː",
+                "eː"
+              ]
+            },
+            {
+              "name": "shortMonophthongs",
+              "values": [
+                "i",
+                "u",
+                "ɑ",
+                "o",
+                "æ",
+                "e",
+                "ə",
+                "ɐ"
+              ]
+            },
+            {
+              "name": "Diphthongs",
+              "values": [
+                "iə",
+                "uə",
+                "ɑɪ",
+                "ɑʊ",
+                "əʊ",
+                "ɜɪ",
+                "æːɪ",
+                "æːʊ"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "linkDefinitions": [
+    {
+      "type": "ONE_TO_MANY",
+      "superlevelName": "bundle",
+      "sublevelName": "ORT"
+    },
+    {
+      "type": "ONE_TO_MANY",
+      "superlevelName": "ORT",
+      "sublevelName": "MAU"
+    }
+  ],
+  "EMUwebAppConfig": {
+    "perspectives": [
+      {
+        "name": "default",
+        "signalCanvases": {
+          "order": [
+            "OSCI",
+            "SPEC"
+          ],
+          "assign": [],
+          "contourLims": []
+        },
+        "levelCanvases": {
+          "order": [
+            "MAU"
+          ]
+        },
+        "twoDimCanvases": {
+          "order": []
+        }
+      }
+    ],
+    "activeButtons": {
+      "saveBundle": true,
+      "showHierarchy": true
+    }
+  }
+}

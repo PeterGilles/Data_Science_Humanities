@@ -1,17 +1,31 @@
 ---
 subtitle: "Lecture for class: Data science in the Humanities"
-title: "Big data-Analysis of phonetic data"
+title: "Big data in the acoustic phonetic analysis"
 author: "Peter Gilles"
+date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
 output:
-  tufte::tufte_html: default
-  tufte::tufte_handout: default
+  #tufte::tufte_html:
+  #tufte::tufte_handout: 
+  html_notebook: 
+    toc: true
+    toc_depth: 2
+    number_sections: true
 ---
 
-29. April 2020, 14h00 - 15h00, University of Luxembourg
+This tutorial will demonstrate how to analyse audio data for acoustic phonetic studies in R. It is mainly intended to demonstrated possible workflows. The topics covered are:
+
+* phonetic databases, the case of `emuR` and `EMU-SDMS`, the EMU Speech Database Management System
+* Sample data: the LOD database
+* Queries and requeries
+* Inscpect the database: `serve()`
+* Calculate duration for vowel categories
+* Vowels formants and visualisations with `ggplot2`
+* Vowel explorer
+* Calculating the Pillai distance
 
 # Preamble {-}
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.).
+This tutorial is organised as  an [R Markdown](http://rmarkdown.rstudio.com) notebook. When you execute code within the notebook, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.).
 
 The following libraries will be needed and have to be installed.
 ```{r}
@@ -30,32 +44,31 @@ library(joeyr, warn.conflicts = FALSE )
 library(knitr)
 ```
 
-This tutorial will demonstrate how to analyse audio data for phonetic studies in R. Topics covered are:
-- phonetic databases, the case of emuR and EMU-SDMS
-- provide a sample data base (subset of the LOD database)
-- present the LOD database
-- do queries
-  requeries
-- serve()
-- overview of the database
-  segments, categories
-- calculate duration
-- vowels formants
-- Pillai distance
 
-# LOD database
+# The LOD database
+
+The database contains the audio recordings from the `Lëtzebuerger Online Dictionnaire` (available [here](https://github.com/spellchecker-lu), spoken by one female speaker. The audio files have been automatically segmented with the [MAUS tools](https://clarin.phonetik.uni-muenchen.de/BASWebServices/interface). We thus have a database conisting of textual data, basically words, and the corresponding audio data. The audio data is segmented into words and phonetic segments (sounds).
+
+This database has been created beforehand. Infos how to create such a database is explained in the [EMU-SDMS manual](https://ips-lmu.github.io/The-EMU-SDMS-Manual/).
+
+We start with loading the database and give an overview of structure and content.
 ```{r}
-db = load_emuDB("/Users/peter.gilles/Documents/_Daten/LOD-emuDB/lod_emuDB")
+# load database
+#db = load_emuDB("/Users/peter.gilles/Documents/_Daten/LOD-emuDB/lod_emuDB")
+db = load_emuDB("lod_emuDB")
+
+# display the overview of the structure and content
 summary(db)
+
 ```
 
-```{r}
-list_ssffTrackDefinitions(db)
-```
+Tracks in `emuR` are acoustic representation of the speech signal, here `dft` for the waveform (time-amplitude representation) and `praatFms` for the formant measures of vowels (see below). 
 
-```{r}
-list_attrDefLabelGroups(db, "MAU", "MAU")
-```
+Levels in an `eumR` database stand for level of interlinked linguistic information. `bundle` is the entire audio file, `ORT` stands for the orthographical representation of the audio file segmented in its single words. `MAU` is the segmentation of all phonetic segment (=sounds) of all `ORT` segments in `bundle`.
+
+The hierarchical structure of these levels is expressed in the `link definitions` as `ONE-TO-MANY`.
+
+
 
 # Database queries
 
@@ -66,13 +79,19 @@ sl = query(db, query = "[ ORT == 'Aarbecht']")
 sl
 ```
 
-The result is a `segment list` (`sl`), containing various information about the found item (time, level, name, database info). The result of the query can also be displayed in the EMU Speech Database Management System. Use: `serve(db, seglist = sl)`. The GUI will open in the `Viewer` pane of RStudio or you can open it in a browser (Chrome preferred).
+The result is a `segment list` (`sl`), containing various information about the found item (time, level, name, database info). The result of the query can also be displayed in the EMU Speech Database Management System. 
+
+`serve(db, seglist = sl)`
+
+The GUI will open in the `Viewer` pane of RStudio or you can open it in a browser (Chrome preferred).
 
 ```{r echo=FALSE}
 knitr::include_graphics(rep("emu-sdms.png"))
 ```
 
-Here we can also display the hiearchical structure for this database item, which is accessed during queries. `bundle` is the top-level, representing the entire audio file. The `ORT` level contains the nodes for the individual words in the `bundle`, here the two words `Aarbecht` and `Aarbechten`. The dependend level then is `MAU` (=`Munich Automatic Unit`) representing the single sounds of the words in `ORT`. 
+Here we can also display the hiearchical structure for this database item, which is accessed during queries. `bundle` is the top-level, representing the entire audio file. 
+
+The `ORT` level contains the nodes for the individual words in the `bundle`, here the two words `Aarbecht` and `Aarbechten`. The dependend level then is `MAU` (=`Munich Automatic Unit`) representing the single sounds of the words in `ORT`. 
 
 ```{r echo=FALSE}
 knitr::include_graphics(rep("hierarchy.png"))
@@ -80,7 +99,7 @@ knitr::include_graphics(rep("hierarchy.png"))
 
 Two aspects render emuR query system extremly powerful: the use of regular expressions (including negation and other extensions) and the combinated query on different levels of the database.
 
-Some more complex queries:
+Let's try more complex queries:
 
 - regular expression, operator `=~`, words beginning with `Aarbecht...`
 ```{r}
@@ -93,17 +112,36 @@ Select the vowel [aː] in all words beginning with `Aarbecht`... Note that in th
 ```{r}
 sl = query(db, query = "[ ORT =~ 'Aarbecht.*' ^ #MAU=='aː']")
 sl
+
 ```
 
-With the query the user can compile the data from the database which then forms the subset for the phonetic analysis. We can select e.g. all instances of certain (or all) vowels, specifying the context before or after etc. etc.
+- query all words from `ORT` where the `MAU` level does NOT contain the segments `nmɑaːətd`.
 
-Of course, querying for individual segments in the audio file like words or sounds, is possible only, if this information has been added to the database before.
+```{r}
+sl = query(db, query = "[ #ORT =~'.*' ^ MAU !~ '[nmɑaːətd]' ]")
+sl
+
+```
+
+With the query the user can compile the data frame from the database which then forms the subset for the phonetic analysis. We can select e.g. all instances of certain (or all) vowels, specifying the context before or after etc. etc.
+
+Of course, querying for individual segments in the audio file like words or sounds is possible only, if this information has been added to the database before.
+
+
 # Vowel explorer
 ```{r}
 knitr::include_app("https://petergill.shinyapps.io/shinyplay/")
 ```
 
 # Calculate the Pillai distance
+
+## from https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap
+
+```{r echo=FALSE}
+knitr::include_graphics(rep("https://joeystanley.com/images/plots/overlap_tutorial/pillai_example.png"))
+
+
+```
 
 
 
