@@ -1,6 +1,8 @@
 ---
 subtitle: "Lecture for class: Data science in the Humanities"
 title: "Big data in the acoustic phonetic analysis"
+
+# needed for github
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
@@ -8,12 +10,17 @@ knit: (function(input_file, encoding) {
  output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
  
 author: "Peter Gilles"
+AuthorUrl: https://twitter.com/PeterGilles
+
 date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
 output:
   #tufte::tufte_html:
   #tufte::tufte_handout:
-  pdf_document:
-    latex_engine: lualatex
+  #pdf_document:
+  #  latex_engine: xelatex
+  #  toc: true
+  #  toc_depth: 2
+  #  number_sections: true
   html_notebook: 
     toc: true
     toc_depth: 2
@@ -326,6 +333,44 @@ From here on the duration values can be utilised in further statistical analyses
 
 # Vowels formants and visualisations with `ggplot2`
 
+Formant frequencies are the acoustic representation of the vowel's quality. Of these, the first two formants are crucial for the vowels identity, i.e. F1 and F2. The values for the formants are already calculated in the database and will now be extracted for all the vowels our dataframe `all_vowels`.
+
+```{r eval=FALSE, include=FALSE}
+# get formant values for those segments
+# either from pre-generated Praat-Track
+td_vowels = get_trackdata(db, all_vowels, 
+                          ssffTrackName = "praatFms", 
+                          resultType = "tibble")
+```
+As it takes long to do this, the dataframe has been precompiled and saved to file ...
+```{r eval=FALSE, include=FALSE}
+saveRDS(td_vowels, file ="td_vowels.RDS")
+```
+
+... to be simply loaded.
+```{r}
+td_vowels <- readRDS("td_vowels.RDS")
+```
+
+Formants are calculated for every sampling point of the audio file. Thus, the dataframe `td_vowels` now contains some 2,3 million rows/values.
+
+maachen = 722
+Viz = 21702
+Kuuscht = 11191
+
+```{r}
+formant_examples <- td_vowels %>%
+  filter(sl_rowIdx == "722" | sl_rowIdx == "21702" | sl_rowIdx == "11191")
+```
+
+```{r message=FALSE}
+ggplot(data=formant_examples) +
+  geom_smooth(aes(x = times_norm, y = T1, col = labels, group = labels)) +
+  geom_smooth(aes(x = times_norm, y = T2, col = labels, group = labels)) +
+  labs(x = "Duration (normalized)", y = "F1 + F2 (Hz)") +
+  ggtitle("Example formants F1, F2 the three corner vowels") +
+  facet_wrap(~ labels)
+```
 
 
 # Calculate the Pillai distance
