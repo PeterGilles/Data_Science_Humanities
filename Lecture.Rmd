@@ -31,10 +31,12 @@ This tutorial will demonstrate how to analyse audio data for acoustic phonetic s
 
 # Preamble {-}
 
-This tutorial is organised as  an [R Markdown](http://rmarkdown.rstudio.com) notebook. When you execute code within the notebook, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.).
+The generated HTML page of this tutorial is available [here](https://petergilles.github.io/Data_Science_Humanities/index.nb.html).
+
+This tutorial is organised as  an [R Markdown](http://rmarkdown.rstudio.com) notebook. To execute the code within this notebook (filename `Lecture.Rmd`) it has to be opend in RStudio. When executing code, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.). The easiest way to work with this R code is to clone the entire project from this GitHub repository.
 
 The following libraries will be needed and have to be installed.
-```{r}
+```{r Libraries, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggiraph)
 library(cowplot)
@@ -46,7 +48,7 @@ library(magrittr)
 library(ggiraph)
 library(htmltools)
 library(shiny)
-library(joeyr, warn.conflicts = FALSE )
+library(joeyr)
 library(knitr)
 ```
 
@@ -57,11 +59,13 @@ The database contains the audio recordings from the `Lëtzebuerger Online Dictio
 
 This database has been created beforehand. Infos how to create such a database is explained in the [EMU-SDMS manual](https://ips-lmu.github.io/The-EMU-SDMS-Manual/).
 
+While we will be working with the full database (26.000 recordings), a small demo database `lod_emuDB` has been created with 500 recordings which can be used for individual testing.
+
 We start with loading the database and give an overview of structure and content.
 ```{r}
 # load database
-#db = load_emuDB("/Users/peter.gilles/Documents/_Daten/LOD-emuDB/lod_emuDB")
-db = load_emuDB("lod_emuDB")
+db = load_emuDB("/Users/peter.gilles/Documents/_Daten/LOD-emuDB/lod_emuDB")
+#db = load_emuDB("lod_emuDB")
 
 # display the overview of the structure and content
 summary(db)
@@ -73,8 +77,6 @@ Tracks in `emuR` are acoustic representation of the speech signal, here `dft` fo
 Levels in an `eumR` database stand for level of interlinked linguistic information. `bundle` is the entire audio file, `ORT` stands for the orthographical representation of the audio file segmented in its single words. `MAU` is the segmentation of all phonetic segment (=sounds) of all `ORT` segments in `bundle`.
 
 The hierarchical structure of these levels is expressed in the `link definitions` as `ONE-TO-MANY`.
-
-
 
 # Database queries
 
@@ -121,18 +123,135 @@ sl
 
 ```
 
-- query all words from `ORT` where the `MAU` level does NOT contain the segments `nmɑaːətd`.
+- query a sequence of sounds, e.g. `e` followed by `k` (`Méck`), by using the sequence operator `->`.
 
 ```{r}
-sl = query(db, query = "[ #ORT =~'.*' ^ MAU !~ '[nmɑaːətd]' ]")
-sl
+sl = query(db, query = "[ MAU == e -> MAU == k ]")
+# print only the first 100 rows
+sl[1:100, ]
 
+```
+
+- in the sequence `e->k`, query only the vowel. Use the result modifier `#`.
+
+```{r}
+sl = query(db, query = "[ #MAU == e -> MAU == k ]")
+# print only the first 100 rows
+sl[1:100, ]
+```
+
+```{r}
+# query all sound items that occur
+# at the end of a word and are `p`
+sl <- query(db, query = "[End(ORT, MAU) == TRUE & MAU == p ]")
+sl
+```
+
+```{r}
+# retrieve all word that contain five segments
+sl <- query(db, "[Num(ORT, MAU) == 5]")
+sl
+```
+
+* using `requery` the results from a previous query can be further specified
+
+```{r}
+# requery_seq()
+
+# query all "m" phonetic items
+sl_m = query(db, "MAU == m")
+
+# sequential requery (left shift result by 1 (== offset of -1))
+# and hence retrieve all phonetic items directly preceeding
+# all "m" phonetic items
+sl_req_n <- requery_seq(db, 
+            seglist = sl_m, 
+            offset = -1)
+sl_req_n
+```
+
+* groups auf sounds can be grouped together to `label groups`, e.g. all long monophthongs (`"iː", "uː", "aː", "oː", "ɔː", "ɛː", "eː"`) or all short monophthongs (`"i", "u", "ɑ", "o", "æ", "e", "ə", "ɐ"`).
+
+```{r}
+# query all "m" phonetic items
+sl = query(db, "MAU == longMonophthongs")
+sl
 ```
 
 With the query the user can compile the data frame from the database which then forms the subset for the phonetic analysis. We can select e.g. all instances of certain (or all) vowels, specifying the context before or after etc. etc.
 
 Of course, querying for individual segments in the audio file like words or sounds is possible only, if this information has been added to the database before.
 
+
+# Signal processing in R
+
+The first task is to extract the time-amplitude waveform representation (oscillogram) for certain single sounds, e.g. some long `aː`.
+
+```{r}
+# query all "aː" phonetic items
+# 
+sl = query(db, "MAU == aː")
+# instead of all 7,000 vowels take only 6
+sl = sl[100:105, ]
+
+```
+
+The data for the oscillogram is stored in the SSF track `dft`, which is extracted by `get_trackdata`. The result is another R dataframe.
+
+```{r}
+# get "dft" track data for these segments
+a_vowels = get_trackdata(emuDBhandle = db,
+                         seglist = sl,
+                         ssffTrackName = "MEDIAFILE_SAMPLES",
+                         verbose = TRUE)
+```
+
+The oscillograms for these 6 vowel instances can then be visualised with `ggplot2`.
+
+```{r}
+# plot oscillogram
+ggplot(data = a_vowels) + 
+  # define the df columns for the x and y values
+  aes(y = T1, x = times_rel) + 
+  # line chart
+  geom_line() + 
+  # sl_rowIdx groups all rows in a dataframe belonging to the same segment
+  # labels contains the label of the segment
+  facet_wrap(~ sl_rowIdx + labels)
+```
+
+```{r}
+# query all "aː" phonetic items
+# 
+sl = query(db, query = "[ ORT =~ 'Fluch.*']")
+# instead of all 7,000 vowels take only 6
+#sl = sl[100:105, ]
+
+# get "f0" track data for these segments, in this case calculated on the fly
+fluch_words = get_trackdata(emuDBhandle = db,
+                         seglist = sl,
+                         onTheFlyFunctionName = "mhsF0",
+                         verbose = TRUE)
+```
+
+```{r}
+# plot f0 tracks
+ggplot(data = fluch_words) + 
+  # define the df columns for the x and y values
+  aes(y = T1, x = times_rel) + 
+  # line chart
+  geom_line() + 
+  # sl_rowIdx groups all rows in a dataframe belonging to the same segment
+  # labels contains the label of the segment
+  facet_wrap(~ sl_rowIdx + labels)
+```
+
+If needed, you can check the content of your segment list with the EMU WebApp running `serve(seglist = sl)`.
+
+
+# Calculate duration for vowel categories
+
+# Vowels formants and visualisations with `ggplot2`
 
 # Vowel explorer
 ```{r}
