@@ -11,7 +11,9 @@ author: "Peter Gilles"
 date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
 output:
   #tufte::tufte_html:
-  #tufte::tufte_handout: 
+  #tufte::tufte_handout:
+  pdf_document:
+    latex_engine: lualatex
   html_notebook: 
     toc: true
     toc_depth: 2
@@ -278,17 +280,60 @@ paste("The mean duration for long monophthongs in the databse is", round(mean(du
 paste("The mean duration for short monophthongs in the databse is", round(mean(duration_short)), "ms. The standard deviation is:", sd(duration_short), ".")
 ```
 
+Instead of having these broad categories `long` and `short` we can break them down to the individual vowels. The dataframes just created contain the individual vowels already in the `labels` column and can thus be easily utilised.
+
+```{r}
+head(longMonophthongs)
+```
+
+First, we create a aggregated datafrom with all vowel segments. This aggregated dataframe now contains 127,065 rows (= long/short vowels).
+
+```{r}
+# add new columns for length, either long or short
+longMonophthongs$length <- "long"
+shortMonophthongs$length <- "short"
+
+# then merge the two data frame into a single one
+all_vowels <- rbind(longMonophthongs, shortMonophthongs)
+
+# add a new colum for segment duration
+all_vowels$duration <- round(all_vowels$end - all_vowels$start)
+```
+
+Using the powerful library `dplyr`, we can now calculate the means for all vowels (= `labels`).
+
+```{r}
+duration_vowels <- all_vowels %>%
+  group_by(labels, length) %>%
+  summarise(mean = mean(duration), sd = sd(duration))
+
+duration_vowels
+```
+
+Finally, visualise the means in a bar chart
+
+```{r}
+# basic setting for ggplot with data and aesthetics
+ggplot(data = duration_vowels, aes(x= labels, y= mean, fill = length)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  # add errorbars
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+  theme_minimal()
+```
+
 From here on the duration values can be utilised in further statistical analyses.
 
 # Vowels formants and visualisations with `ggplot2`
-todo
+
+
 
 # Calculate the Pillai distance
 
 ## from https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap
 
 ```{r echo=FALSE}
-knitr::include_graphics(rep("https://joeystanley.com/images/plots/overlap_tutorial/pillai_example.png"))
+knitr::include_graphics(rep("pillai_example.png"))
 ```
 
 # Vowel explorer
