@@ -1,6 +1,6 @@
-# Data_Science_Humanities
+# Data Science in Humanities
 
-Lecture: Data Science in Humanities, April 2020, University of Luxembourg
+## Lecture: Big data in the acoustic phonetic analysis, April 2020, University of Luxembourg
 
 The tutorial will be given in a Webex session.
 
