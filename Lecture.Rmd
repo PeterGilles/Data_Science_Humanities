@@ -268,6 +268,7 @@ The study of duration of speech segments is a standard task in acoustic phonetic
 # query all "m" phonetic items
 longMonophthongs = query(db, "MAU == longMonophthongs")
 shortMonophthongs = query(db, "MAU == shortMonophthongs")
+sl = rbind(longMonophthongs, shortMonophthongs)
 
 # print the count; number of rows
 nrow(longMonophthongs)
@@ -305,6 +306,11 @@ all_vowels <- rbind(longMonophthongs, shortMonophthongs)
 
 # add a new colum for segment duration
 all_vowels$duration <- round(all_vowels$end - all_vowels$start)
+
+# todo: keep proper sl throughout, will be needed later for requeries!
+sl <- all_vowels %>% filter(!str_detect(bundle, "^[CDDEF].*"))
+sl$length <- NULL
+sl$duration <- NULL
 ```
 
 Using the powerful library `dplyr`, we can now calculate the means for all vowels (= `labels`).
@@ -342,22 +348,37 @@ Formant frequencies are the acoustic representation of the vowel's quality. Of t
 #                          ssffTrackName = "praatFms", 
 #                          resultType = "tibble")
 ```
-As it takes long to do this, the dataframe has been precompiled and saved to file ...
+
+As it takes long to do this, the dataframe has been precompiled and saved to file ... and reloaded again.
 ```{r echo=TRUE}
 # saveRDS(td_vowels, file ="td_vowels.RDS")
+# td_vowels <- readRDS("td_vowels.RDS")
 ```
 
-... to be simply loaded.
+Due to the varying length of all vowels, it is necessary to normalize the length with `normalize_length`. This step takes long and, again, the dataframe has already been created and saved.
+
 ```{r}
-td_vowels <- readRDS("td_vowels.RDS")
+# normalise the length
+# td_vowels_norm = normalize_length(td_vowels %>% select(-duration, -length), colNames = c("T1", "T2"))
+
+# do some cleaning
+# exclude words spoken by another (male) speaker
+# td_vowels_norm <- td_vowels_norm %>%
+#  filter(!str_detect(bundle, "^[CDDEF].*"))
+
+# save this dataframe 
+#saveRDS(td_vowels_norm, file ="td_vowels_norm.RDS")
+
+# load this data frame
+td_vowels_norm <- readRDS("td_vowels_norm.RDS")
 ```
 
-Formants are calculated for every sampling point of the audio file. Thus, the dataframe `td_vowels` now contains some 2,3 million rows/values.
+Formants are calculated for every sampling point of the audio file. Thus, the dataframe `td_vowels_norm` now contains some 2,1 million rows/values.
 
 For illustration purposes, the formants for the long vowels in three example words are selected into a dataframe (*maachen, Viz, Kuuscht*).
 
 ```{r}
-formant_examples <- td_vowels %>%
+formant_examples <- td_vowels_norm %>%
   filter(sl_rowIdx == "722" | sl_rowIdx == "21702" | sl_rowIdx == "11191")
 ```
 
@@ -372,10 +393,48 @@ ggplot(data=formant_examples) +
   facet_wrap(~ labels)
 ```
 
+To get the identity of a vowel, it is common practise to select only one point in the middle of the vowel. To do so, I am using a `filter` and select the F1 and F2 values at the normalised time point `0.4`. This gives us F1 and F2 values for 104,055 vowels.
+
 ```{r}
-vowel_midpoints = td_vowels %>% 
+vowel_midpoints = td_vowels_norm %>% 
   filter(times_norm == 0.4)
+vowel_midpoints$labels <-   as.factor(vowel_midpoints$labels)
 ```
+
+Again, some further data conversion.
+```{r warning=FALSE}
+# convert Hertz to Bark
+# convert T1, T2, T3 to Bark
+td_vowels_norm$T1 <- emuR::bark(td_vowels_norm$T1)
+td_vowels_norm$T2 <- emuR::bark(td_vowels_norm$T2)
+
+# insert new columns from requeries to have the info about the next and next_next and previous label after the vowel
+vowel_midpoints$next_label = as.factor(requery_seq(db, seglist = sl, offset=1)$labels)
+vowel_midpoints$next_next_label = as.factor(requery_seq(db, seglist = sl, offset=2, ignoreOutOfBounds =TRUE)$labels)
+vowel_midpoints$word = requery_hier(db, seglist = sl, level="ORT")$labels
+vowel_midpoints$previous_label <- as.factor(requery_seq(db, seglist = sl, offset= -1)$labels)
+```
+
+The dataframe `vowel_midpoints` is now enriched with additional columns for the actual `word` (of a vowel instance), `previous_label`, `next_label` and `next_next_label`, which allows to select data more fine-grained for the following visualisations, e.g. all vowels `aː` with a `g` in front and an `R` after it.
+
+```{r}
+head(vowel_midpoints)
+```
+
+Prepared in such a way, the visualisations of this sheer amount of vowels can commence. Vowel quality is charted in scatter plots, where the F1 value is plotted on the y-axis and the F2 value on the y-axis. To gain resemblance with the articulation of vowels, both axes are reversed. Thus `i` is located in the top front, `u` in the top back and `a` in the low position.
+
+The result looks rather flashy, but is also flawd. First, there are several outliers, especially in the SW corner. An elimination procedure for outliers is needed. Secondly, the single clouds for each vowels are overlapping each other to such an extent that the proper location is not identifiable.
+
+```{r}
+ggplot(vowel_midpoints) +
+  aes(x = T2, y = T1, label = labels, col = labels) +
+  geom_text() +
+  scale_y_reverse() + 
+  scale_x_reverse(breaks = seq(from=7, to=14, by=1), minor_breaks = NULL) + 
+  labs(x = "F2 (Bark)", y = "F1 (Bark)") +
+  ggtitle("Scatter plot of all vowels in the LOD database")
+```
+
 
 
 # Calculate the Pillai distance
