@@ -1,6 +1,19 @@
 ---
 subtitle: "Lecture for class: Data science in the Humanities"
 title: "Big data in the acoustic phonetic analysis"
+output:
+  #tufte::tufte_html:
+  #tufte::tufte_handout:
+  #pdf_document:
+  #  latex_engine: xelatex
+  #  toc: true
+  #  toc_depth: 2
+  #  number_sections: true
+  html_notebook: 
+    df_print: paged
+    toc: true
+    toc_depth: 2
+    number_sections: true
 
 # needed for github
 knit: (function(input_file, encoding) {
@@ -13,18 +26,6 @@ author: "Peter Gilles"
 url: "https://twitter.com/PeterGilles"
 
 date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
-output:
-  #tufte::tufte_html:
-  #tufte::tufte_handout:
-  #pdf_document:
-  #  latex_engine: xelatex
-  #  toc: true
-  #  toc_depth: 2
-  #  number_sections: true
-  html_notebook: 
-    toc: true
-    toc_depth: 2
-    number_sections: true
 ---
 
 This tutorial will demonstrate how to analyse audio data for acoustic phonetic studies in R. It is mainly intended to demonstrated possible workflows. The topics covered are:
@@ -423,9 +424,10 @@ head(vowel_midpoints)
 
 Prepared in such a way, the visualisations of this sheer amount of vowels can commence. Vowel quality is charted in scatter plots, where the F1 value is plotted on the y-axis and the F2 value on the y-axis. To gain resemblance with the articulation of vowels, both axes are reversed. Thus `i` is located in the top front, `u` in the top back and `a` in the low position.
 
-The result looks rather flashy, but is also flawd. First, there are several outliers, especially in the SW corner. An elimination procedure for outliers is needed. Secondly, the single clouds for each vowels are overlapping each other to such an extent that the proper location is not identifiable.
+The result looks rather flashy, but nevertheless has some flaws. First, there are several outliers, especially in the SW corner. An elimination procedure for outliers is needed. Secondly, the single clouds for each vowels are overlapping each other to such an extent that the proper location is not identifiable.
 
 ```{r}
+# takes too long: do not run with full dataset!
 ggplot(vowel_midpoints) +
   aes(x = T2, y = T1, label = labels, col = labels) +
   geom_text() +
@@ -435,11 +437,74 @@ ggplot(vowel_midpoints) +
   ggtitle("Scatter plot of all vowels in the LOD database")
 ```
 
+Next task: remove outliers. I am using a function based on the (`Mahalnobis distance`)[https://en.wikipedia.org/wiki/Mahalanobis_distance], which incrementally excludes outliers up to a predefined threshold. In the present case we keep 85 % of the values.
+
+```{r eval=FALSE, include=FALSE}
+without_outliers <- vowel_midpoints %>%
+  select(word, previous_label, labels, next_label, next_next_label, T1, T2, times_rel) %>%
+  group_by(labels) %>%
+  filter(!find_outliers(T1, T2, times_rel, keep = 0.85))
+```
+
+```{r}
+# outlier computations takes also a while
+# to be on the safe side, also save this dataframe to disk
+# saveRDS(without_outliers, file="without_outliers.RDS")
+without_outliers <- readRDS("without_outliers.RDS")
+```
+
+`without_outliers` contains some 88,000 rows, meaning nearly 20,000 have been identified as outliers.
+
+To reduce the amount of data points in the scatter plot, one can draw `contour plots` (following [this idea](http://christiandicanio.blogspot.com/2013/10/visualizing-vowel-spaces-in-r-from.html)). This method `geom_density2d` facilitates to identify the core zones of vowel realisations, i.e. where - similar to a weather chart - the lines are closer together.
+
+```{r}
+ggplot(without_outliers, aes(x = T2, y = T1, color=labels)) +
+  geom_density2d(aes(label= labels)) +
+  scale_y_reverse() + 
+  scale_x_reverse(breaks = seq(from=7, to=14, by=1), minor_breaks = NULL) + 
+  labs(x = "F2 (Bark)", y = "F1 (Bark)") +
+  ggtitle("Contour plot of all vowels in the LOD database")
+```
+
+Instead of displaying each and every data point, draw only an ellipse for the extent of a vowel cloud. For each ellipse the middle point, the so-called `centroid` is also computed.
+
+```{r}
+# plot centroids and ellipses
+centroid = without_outliers %>%
+  group_by(labels) %>%
+  summarize(F1=mean(T1), F2=mean(T2))
+
+ggplot(without_outliers) +
+  aes(x=T2,y=T1, col=labels,label=labels)+
+  stat_ellipse() +
+  geom_text(data=centroid,aes(x=F2,y=F1)) +
+  scale_y_reverse() + scale_x_reverse() +
+  labs(x = "F2 (Hz)", y = "F1 (Hz)") +
+  theme(legend.position="none")  +
+  ggtitle("Dispersion of vowels in Luxembourgish")
+```
+
+```{r}
+ggplot(without_outliers %>% filter(!(labels =="ɐ" | labels == 'ə' | labels == 'ɔː'))) +
+  aes(x = T2, y = T1, label = labels, col = labels) +
+  geom_text() +
+  scale_y_reverse() + 
+  scale_x_reverse(breaks = seq(from=7, to=14, by=1), minor_breaks = NULL) + 
+  labs(x = "F2 (Bark)", y = "F1 (Bark)") +
+  ggtitle("Scatter plot of all vowels in the LOD database") +
+  facet_wrap(~ labels)
+```
 
 
-# Calculate the Pillai distance
+# Sound change in progress: The overlap of vowels
 
-## from https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap
+From the visualisation shown so far it becomes obvious that vowels are not neatly separated but rather often show a certain amount of overlap. This  is either due to measurement errors or is indicating that a vowel production is changing, i.e. that we are dealing with sound change. Sound change usually manifests itself in subconscious, minimal devitations from a former prototypical sound and these deviation may become more prominent at a later stage.
+
+In Luxembourgish, too, several sound changes are in progress for the vowels. The last example in this tutorial covers the variational pattern of the two vowels [e] (in words like *Méck, bréngen, sécher*) and [ə] (like in *Schëff, Dësch*). While for elder speakers these vowels are distinct, there is an ongoing merger for younger speaker by pronuncing the vowel before the certain consonants like [ə] instead of [e].
+
+
+
+see https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap
 
 ```{r echo=FALSE}
 knitr::include_graphics(rep("pillai_example.png"))
