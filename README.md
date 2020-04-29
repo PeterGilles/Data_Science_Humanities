@@ -4,7 +4,7 @@
 April 29th, 2020
 University of Luxembourg
 
-The tutorial will be given in a Webex session.
+The tutorial will be delivered as a Webex session.
 
 The generated HTML page of this tutorial is available [here](https://petergilles.github.io/Data_Science_Humanities/index.nb.html).
 

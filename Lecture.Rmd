@@ -10,7 +10,7 @@ knit: (function(input_file, encoding) {
  output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
  
 author: "Peter Gilles"
-AuthorUrl: https://twitter.com/PeterGilles
+url: "https://twitter.com/PeterGilles"
 
 date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
 output:
@@ -335,16 +335,16 @@ From here on the duration values can be utilised in further statistical analyses
 
 Formant frequencies are the acoustic representation of the vowel's quality. Of these, the first two formants are crucial for the vowels identity, i.e. F1 and F2. The values for the formants are already calculated in the database and will now be extracted for all the vowels our dataframe `all_vowels`.
 
-```{r eval=FALSE, include=FALSE}
+```{r include=FALSE}
 # get formant values for those segments
 # either from pre-generated Praat-Track
-td_vowels = get_trackdata(db, all_vowels, 
-                          ssffTrackName = "praatFms", 
-                          resultType = "tibble")
+#td_vowels = get_trackdata(db, all_vowels, 
+#                          ssffTrackName = "praatFms", 
+#                          resultType = "tibble")
 ```
 As it takes long to do this, the dataframe has been precompiled and saved to file ...
-```{r eval=FALSE, include=FALSE}
-saveRDS(td_vowels, file ="td_vowels.RDS")
+```{r echo=TRUE}
+# saveRDS(td_vowels, file ="td_vowels.RDS")
 ```
 
 ... to be simply loaded.
@@ -354,14 +354,14 @@ td_vowels <- readRDS("td_vowels.RDS")
 
 Formants are calculated for every sampling point of the audio file. Thus, the dataframe `td_vowels` now contains some 2,3 million rows/values.
 
-maachen = 722
-Viz = 21702
-Kuuscht = 11191
+For illustration purposes, the formants for the long vowels in three example words are selected into a dataframe (*maachen, Viz, Kuuscht*).
 
 ```{r}
 formant_examples <- td_vowels %>%
   filter(sl_rowIdx == "722" | sl_rowIdx == "21702" | sl_rowIdx == "11191")
 ```
+
+These three vowels then are visualised as line charts.
 
 ```{r message=FALSE}
 ggplot(data=formant_examples) +
@@ -370,6 +370,11 @@ ggplot(data=formant_examples) +
   labs(x = "Duration (normalized)", y = "F1 + F2 (Hz)") +
   ggtitle("Example formants F1, F2 the three corner vowels") +
   facet_wrap(~ labels)
+```
+
+```{r}
+vowel_midpoints = td_vowels %>% 
+  filter(times_norm == 0.4)
 ```
 
 
