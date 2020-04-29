@@ -484,6 +484,8 @@ ggplot(without_outliers) +
   ggtitle("Dispersion of vowels in Luxembourgish")
 ```
 
+A further possibility is to use the function `facet_wrap` which creates single plot for the factors of a variable. Here, individual plots are displayed according to the labels ( = vowels) in the dataframe.
+
 ```{r}
 ggplot(without_outliers %>% filter(!(labels =="ɐ" | labels == 'ə' | labels == 'ɔː'))) +
   aes(x = T2, y = T1, label = labels, col = labels) +
@@ -502,13 +504,48 @@ From the visualisation shown so far it becomes obvious that vowels are not neatl
 
 In Luxembourgish, too, several sound changes are in progress for the vowels. The last example in this tutorial covers the variational pattern of the two vowels [e] (in words like *Méck, bréngen, sécher*) and [ə] (like in *Schëff, Dësch*). While for elder speakers these vowels are distinct, there is an ongoing merger for younger speaker by pronuncing the vowel before the certain consonants like [ə] instead of [e].
 
+To tackle this task, we first need the relevant data, which has been prepared in a dataframge `merger`.
 
+```{r}
+merger <- readRDS("e_merger_data.RDS")
+```
 
-see https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap
+With around 2,100 rows this dataset is not too large for a scatter plot. The relevant information is the horizontal overlap between the clouds. While two of the red ones are quite distinct from the green one, it is the could for [ɕ] which is showing overlap with the cloud for [ʃ]. Here we have clear evidence of an ongoing vowel merger.
+
+```{r}
+ggplot(merger) +
+  aes(x = T2, y = T1, label = labels, col = labels) +
+  geom_text() +
+  scale_y_reverse() + 
+  scale_x_reverse(breaks = seq(from=7, to=14, by=1), minor_breaks = NULL) + 
+  labs(x = "F2 (Bark)", y = "F1 (Bark)") +
+  ggtitle("Scatter plot of the vowels [ə] and [e] in the LOD database") +
+  facet_wrap(~ next_label)
+```
+
+The actual amount of overlap between two cloud-like data sets can be calculated with the so-called `Pillai` score Details see [here](https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap).
+
+Basically, high Pillai scores indicate distinct clouds, low Pillai score indicate merger.
 
 ```{r echo=FALSE}
 knitr::include_graphics(rep("pillai_example.png"))
 ```
+
+Let's not calculate the Pillai scores for the overlap.
+
+```{r}
+e_ch_vowels <- merger %>%
+  filter((labels == "e" & next_label =="ɕ"))
+         
+e_sch_vowels <- merger %>%
+  filter((labels == "ə" & next_label =="ʃ"))
+
+vowels <- rbind(e_ch_vowels, e_sch_vowels)
+         
+pillai(cbind(T1, T2) ~ labels, data = vowels)
+         
+```
+
 
 # Vowel explorer
 
