@@ -30,14 +30,15 @@ date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
 
 This tutorial will demonstrate how to analyse audio data for acoustic phonetic studies in R. It is mainly intended to demonstrated possible workflows. The topics covered are:
 
-* phonetic databases, the case of `emuR` and `EMU-SDMS`, the EMU Speech Database Management System
+* Phonetic databases, the case of `emuR` and `EMU-SDMS`, the EMU Speech Database Management System
 * Sample data: the LOD database
 * Queries and requeries
 * Inscpect the database: `serve()`
 * Calculate duration for vowel categories
 * Vowels formants and visualisations with `ggplot2`
-* Vowel explorer
 * Calculating the Pillai distance
+* Vowel explorer
+
 
 # Preamble {-}
 
@@ -62,14 +63,13 @@ library(joeyr)
 library(knitr)
 ```
 
-
 # The LOD database
 
 The database contains the audio recordings from the `Lëtzebuerger Online Dictionnaire` (available [here](https://github.com/spellchecker-lu), spoken by one female speaker. The audio files have been automatically segmented with the [MAUS tools](https://clarin.phonetik.uni-muenchen.de/BASWebServices/interface). We thus have a database conisting of textual data, basically words, and the corresponding audio data. The audio data is segmented into words and phonetic segments (sounds).
 
 This database has been created beforehand. Infos how to create such a database is explained in the [EMU-SDMS manual](https://ips-lmu.github.io/The-EMU-SDMS-Manual/).
 
-While we will be working with the full database (26.000 recordings), a small demo database `lod_emuDB` has been created with 500 recordings which can be used for individual testing.
+While we will be working in this tutorial with the full database (26.000 recordings), a small demo database `lod_emuDB` has been created with 500 recordings which can be used for individual testing.
 
 We start with loading the database and give an overview of structure and content.
 ```{r}
@@ -203,7 +203,6 @@ The first task is to extract the time-amplitude waveform representation (oscillo
 sl = query(db, "MAU == aː")
 # instead of all 7,000 vowels take only 6
 sl = sl[100:105, ]
-
 ```
 
 The data for the oscillogram is stored in the SSF track `dft`, which is extracted by `get_trackdata`. The result is another R dataframe.
@@ -266,9 +265,11 @@ If needed, you can check the content of your segment list with the EMU WebApp ru
 The study of duration of speech segments is a standard task in acoustic phonetics. Let's see how to solve this in `R`. Thanks to the `label groups` which are available in the database, we have easy access to e.g. all `shortMonophthongs` and all `longMonophthongs`.
 
 ```{r}
-# query all "m" phonetic items
+# query all long and short vowels
 longMonophthongs = query(db, "MAU == longMonophthongs")
 shortMonophthongs = query(db, "MAU == shortMonophthongs")
+
+# bind the two together to one segment list sl
 sl = rbind(longMonophthongs, shortMonophthongs)
 
 # print the count; number of rows
@@ -409,7 +410,7 @@ Again, some further data conversion.
 td_vowels_norm$T1 <- emuR::bark(td_vowels_norm$T1)
 td_vowels_norm$T2 <- emuR::bark(td_vowels_norm$T2)
 
-# insert new columns from requeries to have the info about the next and next_next and previous label after the vowel
+# insert new columns from requeries to have the info about the next and next_next and previous label after the vowel available in the dataframe
 vowel_midpoints$next_label = as.factor(requery_seq(db, seglist = sl, offset=1)$labels)
 vowel_midpoints$next_next_label = as.factor(requery_seq(db, seglist = sl, offset=2, ignoreOutOfBounds =TRUE)$labels)
 vowel_midpoints$word = requery_hier(db, seglist = sl, level="ORT")$labels
@@ -422,7 +423,7 @@ The dataframe `vowel_midpoints` is now enriched with additional columns for the 
 head(vowel_midpoints)
 ```
 
-Prepared in such a way, the visualisations of this sheer amount of vowels can commence. Vowel quality is charted in scatter plots, where the F1 value is plotted on the y-axis and the F2 value on the y-axis. To gain resemblance with the articulation of vowels, both axes are reversed. Thus `i` is located in the top front, `u` in the top back and `a` in the low position.
+Prepared in such a way, the visualisations of this sheer amount of +100,000 vowels can commence. Vowel quality is charted in scatter plots, where the F1 value is plotted on the y-axis and the F2 value on the y-axis. To gain resemblance with the articulation of vowels, both axes are reversed. Thus `i` is located in the top front, `u` in the top back and `a` in the low position.
 
 The result looks rather flashy, but nevertheless has some flaws. First, there are several outliers, especially in the SW corner. An elimination procedure for outliers is needed. Secondly, the single clouds for each vowels are overlapping each other to such an extent that the proper location is not identifiable.
 
@@ -433,7 +434,7 @@ ggplot(vowel_midpoints) +
   geom_text() +
   scale_y_reverse() + 
   scale_x_reverse(breaks = seq(from=7, to=14, by=1), minor_breaks = NULL) + 
-  labs(x = "F2 (Bark)", y = "F1 (Bark)") +
+  labs(x = "F2 (Hz)", y = "F1 (Hz)") +
   ggtitle("Scatter plot of all vowels in the LOD database")
 ```
 
@@ -453,7 +454,7 @@ without_outliers <- vowel_midpoints %>%
 without_outliers <- readRDS("without_outliers.RDS")
 ```
 
-`without_outliers` contains some 88,000 rows, meaning nearly 20,000 have been identified as outliers.
+`without_outliers` contains some 88,000 rows, meaning nearly 20,000 have been identified and removed as outliers.
 
 To reduce the amount of data points in the scatter plot, one can draw `contour plots` (following [this idea](http://christiandicanio.blogspot.com/2013/10/visualizing-vowel-spaces-in-r-from.html)). This method `geom_density2d` facilitates to identify the core zones of vowel realisations, i.e. where - similar to a weather chart - the lines are closer together.
 
@@ -484,7 +485,7 @@ ggplot(without_outliers) +
   ggtitle("Dispersion of vowels in Luxembourgish")
 ```
 
-A further possibility is to use the function `facet_wrap` which creates single plot for the factors of a variable. Here, individual plots are displayed according to the labels ( = vowels) in the dataframe.
+A further possibility is to use the function `facet_wrap` which creates single plot for the factors of a variable. Here, individual plots are displayed according to the labels ( = vowels) in the dataframe. The elliptoid shape of each cloud is a result of the outlier removal procedure.
 
 ```{r}
 ggplot(without_outliers %>% filter(!(labels =="ɐ" | labels == 'ə' | labels == 'ɔː'))) +
@@ -525,7 +526,7 @@ ggplot(merger) +
 
 The actual amount of overlap between two cloud-like data sets can be calculated with the so-called `Pillai` score Details see [here](https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap).
 
-Basically, high Pillai scores indicate distinct clouds, low Pillai score indicate merger.
+Basically, high Pillai scores indicate distinct clouds, low Pillai score indicate merger. ([Source of figure](https://joeystanley.com/blog/a-tutorial-in-calculating-vowel-overlap))
 
 ```{r echo=FALSE}
 knitr::include_graphics(rep("pillai_example.png"))
@@ -546,6 +547,7 @@ pillai(cbind(T1, T2) ~ labels, data = vowels)
          
 ```
 
+With this rather low value the Pillai score implies that the two vowel realisations are indeed rather close and merging into each other.
 
 # Vowel explorer
 
