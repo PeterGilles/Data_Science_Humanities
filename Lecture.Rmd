@@ -408,17 +408,17 @@ vowel_midpoints$labels <-   as.factor(vowel_midpoints$labels)
 ```
 
 Again, some further data conversion.
-```{r eval=FALSE, warning=FALSE, include=FALSE}
+```{r warning=FALSE}
 # convert Hertz to Bark
 # convert T1, T2, T3 to Bark
 td_vowels_norm$T1 <- emuR::bark(td_vowels_norm$T1)
 td_vowels_norm$T2 <- emuR::bark(td_vowels_norm$T2)
 
 # insert new columns from requeries to have the info about the next and next_next and previous label after the vowel available in the dataframe
-#vowel_midpoints$next_label = as.factor(requery_seq(db, seglist = sl, offset=1)$labels)
-#vowel_midpoints$next_next_label = as.factor(requery_seq(db, seglist = sl, offset=2, ignoreOutOfBounds =TRUE)$labels)
-#vowel_midpoints$word = requery_hier(db, seglist = sl, level="ORT")$labels
-#vowel_midpoints$previous_label <- as.factor(requery_seq(db, seglist = sl, offset= -1)$labels)
+vowel_midpoints$next_label = as.factor(requery_seq(db, seglist = sl, offset=1)$labels)
+vowel_midpoints$next_next_label = as.factor(requery_seq(db, seglist = sl, offset=2, ignoreOutOfBounds =TRUE)$labels)
+vowel_midpoints$word = requery_hier(db, seglist = sl, level="ORT")$labels
+vowel_midpoints$previous_label <- as.factor(requery_seq(db, seglist = sl, offset= -1)$labels)
 ```
 
 The dataframe `vowel_midpoints` is now enriched with additional columns for the actual `word` (of a vowel instance), `previous_label`, `next_label` and `next_next_label`, which allows to select data more fine-grained for the following visualisations, e.g. all vowels `aː` with a `g` in front and an `R` after it.
