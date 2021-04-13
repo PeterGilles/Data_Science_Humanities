@@ -25,8 +25,10 @@ knit: (function(input_file, encoding) {
 author: "Peter Gilles"
 url: "https://twitter.com/PeterGilles"
 
-date: "29. April 2020, 14h00 - 16h00, University of Luxembourg"
+date: "13. April 2021, 14h00 - 15h30, University of Luxembourg"
 ---
+
+# Topics {-}
 
 This tutorial will demonstrate how to analyse audio data for acoustic phonetic studies in R. It is mainly intended to demonstrated possible workflows. The topics covered are:
 
@@ -47,18 +49,15 @@ The generated HTML page of this tutorial is available [here](https://petergilles
 This tutorial is organised as  an [R Markdown](http://rmarkdown.rstudio.com) notebook. To execute the code within this notebook (filename `Lecture.Rmd`) it has to be opend in RStudio. When executing code, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.). The easiest way to work with this R code is to clone the entire project from this GitHub repository.
 
 The following libraries will be needed and have to be installed.
+
 ```{r Libraries, message=FALSE, warning=FALSE}
 library(tidyverse)
-library(ggiraph)
-library(cowplot)
 library(emuR)
 library(tools)
 library(rio)
 library(ggplot2)
 library(magrittr)
-library(ggiraph)
 library(htmltools)
-library(shiny)
 library(joeyr)
 library(knitr)
 ```
@@ -75,6 +74,7 @@ We start with loading the database and give an overview of structure and content
 ```{r}
 # load database
 db = load_emuDB("/Users/peter.gilles/Documents/_Daten/LOD-emuDB/lod_emuDB")
+# for testing purposes, use this smaller database in the Github folder
 #db = load_emuDB("lod_emuDB")
 
 # display the overview of the structure and content
@@ -84,7 +84,7 @@ summary(db)
 
 Tracks in `emuR` are acoustic representation of the speech signal, here `dft` for the waveform (time-amplitude representation) and `praatFms` for the formant measures of vowels (see below). 
 
-Levels in an `eumR` database stand for level of interlinked linguistic information. `bundle` is the entire audio file, `ORT` stands for the orthographical representation of the audio file segmented in its single words. `MAU` is the segmentation of all phonetic segment (=sounds) of all `ORT` segments in `bundle`.
+Levels in an `emuR` database stand for level of interlinked linguistic information. `bundle` is the entire audio file, `ORT` stands for the orthographical representation of the audio file segmented in its single words. `MAU` is the segmentation of all phonetic segment (=sounds) of all `ORT` segments in `bundle`.
 
 The hierarchical structure of these levels is expressed in the `link definitions` as `ONE-TO-MANY`.
 
@@ -99,7 +99,10 @@ sl
 
 The result is a `segment list` (`sl`), containing various information about the found item (time, level, name, database info). The result of the query can also be displayed in the EMU Speech Database Management System. 
 
-`serve(db, seglist = sl)`
+
+```{r, rexample:tutorial_serve, eval=FALSE}
+serve(db, seglist = sl)
+```
 
 The GUI will open in the `Viewer` pane of RStudio or you can open it in a browser (Chrome preferred).
 
@@ -125,7 +128,7 @@ sl = query(db, query = "[ ORT =~ 'Aarbecht.*']")
 sl
 ```
 
-Select the vowel [aː] in all words beginning with `Aarbecht`... Note that in the segment list the label now has changed to the vowel and the respective start-end information is now only for this sound [aː].
+Query: Select the vowel [aː] in all words beginning with `Aarbecht`... Note that in the segment list the label now has changed to the vowel and the respective start-end information is now only for this sound [aː].
 
 ```{r}
 sl = query(db, query = "[ ORT =~ 'Aarbecht.*' ^ #MAU=='aː']")
@@ -133,7 +136,7 @@ sl
 
 ```
 
-- query a sequence of sounds, e.g. `e` followed by `k` (`Méck`), by using the sequence operator `->`.
+Query a sequence of sounds, e.g. `e` followed by `k` (`Méck`), by using the sequence operator `->`.
 
 ```{r}
 sl = query(db, query = "[ MAU == e -> MAU == k ]")
@@ -142,7 +145,7 @@ sl[1:100, ]
 
 ```
 
-- in the sequence `e->k`, query only the vowel. Use the result modifier `#`.
+In the sequence `e->k`, query only the vowel. Use the result modifier `#`.
 
 ```{r}
 sl = query(db, query = "[ #MAU == e -> MAU == k ]")
@@ -150,20 +153,21 @@ sl = query(db, query = "[ #MAU == e -> MAU == k ]")
 sl[1:100, ]
 ```
 
+Wuery all sound items that occur at the end of a word and are [p].
+
 ```{r}
-# query all sound items that occur
-# at the end of a word and are `p`
 sl <- query(db, query = "[End(ORT, MAU) == TRUE & MAU == p ]")
 sl
 ```
 
+Retrieve all word that contain five segments.
+
 ```{r}
-# retrieve all word that contain five segments
 sl <- query(db, "[Num(ORT, MAU) == 5]")
 sl
 ```
 
-* using `requery` the results from a previous query can be further specified
+Using `requery`, the results from a previous query can be further specified.
 
 ```{r}
 # requery_seq()
@@ -180,7 +184,7 @@ sl_req_n <- requery_seq(db,
 sl_req_n
 ```
 
-* groups auf sounds can be grouped together to `label groups`, e.g. all long monophthongs (`"iː", "uː", "aː", "oː", "ɔː", "ɛː", "eː"`) or all short monophthongs (`"i", "u", "ɑ", "o", "æ", "e", "ə", "ɐ"`).
+Groups auf sounds can be grouped together to `label groups`, e.g. all long monophthongs (`"iː", "uː", "aː", "oː", "ɔː", "ɛː", "eː"`) or all short monophthongs (`"i", "u", "ɑ", "o", "æ", "e", "ə", "ɐ"`).
 
 ```{r}
 # query all "m" phonetic items
@@ -296,7 +300,7 @@ Instead of having these broad categories `long` and `short` we can break them do
 head(longMonophthongs)
 ```
 
-First, we create a aggregated datafrom with all vowel segments. This aggregated dataframe now contains 127,065 rows (= long/short vowels).
+First, we create an aggregated dataframe with all vowel segments. This aggregated dataframe now contains 127,065 rows (= long/short vowels).
 
 ```{r}
 # add new columns for length, either long or short
@@ -309,7 +313,7 @@ all_vowels <- rbind(longMonophthongs, shortMonophthongs)
 # add a new colum for segment duration
 all_vowels$duration <- round(all_vowels$end - all_vowels$start)
 
-# todo: keep proper sl throughout, will be needed later for requeries!
+# todo: keep propper sl throughout, will be needed later for requeries!
 sl <- all_vowels %>% filter(!str_detect(bundle, "^[CDDEF].*"))
 sl$length <- NULL
 sl$duration <- NULL
@@ -395,7 +399,7 @@ ggplot(data=formant_examples) +
   facet_wrap(~ labels)
 ```
 
-To get the identity of a vowel, it is common practise to select only one point in the middle of the vowel. To do so, I am using a `filter` and select the F1 and F2 values at the normalised time point `0.4`. This gives us F1 and F2 values for 104,055 vowels.
+To get the identity of a vowel, it is common practice to select only one point in the middle of the vowel. To do so, I am using a `filter` and select the F1 and F2 values at the normalised time point `0.4`. This gives us F1 and F2 values for 104,055 vowels.
 
 ```{r}
 vowel_midpoints = td_vowels_norm %>% 
@@ -404,17 +408,17 @@ vowel_midpoints$labels <-   as.factor(vowel_midpoints$labels)
 ```
 
 Again, some further data conversion.
-```{r warning=FALSE}
+```{r eval=FALSE, warning=FALSE, include=FALSE}
 # convert Hertz to Bark
 # convert T1, T2, T3 to Bark
 td_vowels_norm$T1 <- emuR::bark(td_vowels_norm$T1)
 td_vowels_norm$T2 <- emuR::bark(td_vowels_norm$T2)
 
 # insert new columns from requeries to have the info about the next and next_next and previous label after the vowel available in the dataframe
-vowel_midpoints$next_label = as.factor(requery_seq(db, seglist = sl, offset=1)$labels)
-vowel_midpoints$next_next_label = as.factor(requery_seq(db, seglist = sl, offset=2, ignoreOutOfBounds =TRUE)$labels)
-vowel_midpoints$word = requery_hier(db, seglist = sl, level="ORT")$labels
-vowel_midpoints$previous_label <- as.factor(requery_seq(db, seglist = sl, offset= -1)$labels)
+#vowel_midpoints$next_label = as.factor(requery_seq(db, seglist = sl, offset=1)$labels)
+#vowel_midpoints$next_next_label = as.factor(requery_seq(db, seglist = sl, offset=2, ignoreOutOfBounds =TRUE)$labels)
+#vowel_midpoints$word = requery_hier(db, seglist = sl, level="ORT")$labels
+#vowel_midpoints$previous_label <- as.factor(requery_seq(db, seglist = sl, offset= -1)$labels)
 ```
 
 The dataframe `vowel_midpoints` is now enriched with additional columns for the actual `word` (of a vowel instance), `previous_label`, `next_label` and `next_next_label`, which allows to select data more fine-grained for the following visualisations, e.g. all vowels `aː` with a `g` in front and an `R` after it.
@@ -501,17 +505,17 @@ ggplot(without_outliers %>% filter(!(labels =="ɐ" | labels == 'ə' | labels == 
 
 # Sound change in progress: The overlap of vowels
 
-From the visualisation shown so far it becomes obvious that vowels are not neatly separated but rather often show a certain amount of overlap. This  is either due to measurement errors or is indicating that a vowel production is changing, i.e. that we are dealing with sound change. Sound change usually manifests itself in subconscious, minimal devitations from a former prototypical sound and these deviation may become more prominent at a later stage.
+From the visualisation shown so far it becomes obvious that vowels are not neatly separated but rather often show a certain amount of overlap. This is either due to measurement errors or is indicating that a vowel production is changing, i.e. that we are dealing with sound change. Sound change usually manifests itself in subconscious, minimal deviations from a former prototypical sound and these deviation may become more prominent at a later stage.
 
-In Luxembourgish, too, several sound changes are in progress for the vowels. The last example in this tutorial covers the variational pattern of the two vowels [e] (in words like *Méck, bréngen, sécher*) and [ə] (like in *Schëff, Dësch*). While for elder speakers these vowels are distinct, there is an ongoing merger for younger speaker by pronuncing the vowel before the certain consonants like [ə] instead of [e].
+In Luxembourgish, too, several sound changes are in progress for the vowels. The last example in this tutorial covers the variational pattern of the two e-vowels, [e] (in words like *Méck, bréngen, sécher*) and [ə] (like in *Schëff, Dësch*). While for elder speakers these vowels are distinct, there is an ongoing merger for younger speaker by pronouncing the vowel before the certain consonants like [ə] instead of [e].
 
-To tackle this task, we first need the relevant data, which has been prepared in a dataframge `merger`.
+To tackle this task, we first need the relevant data, which has been prepared in a dataframe `merger`.
 
 ```{r}
 merger <- readRDS("e_merger_data.RDS")
 ```
 
-With around 2,100 rows this dataset is not too large for a scatter plot. The relevant information is the horizontal overlap between the clouds. While two of the red ones are quite distinct from the green one, it is the could for [ɕ] which is showing overlap with the cloud for [ʃ]. Here we have clear evidence of an ongoing vowel merger.
+With around 2,100 rows this dataset is not too large for a scatter plot. The relevant information is the horizontal overlap between the clouds. While two of the red ones ([k], [ŋ]) are quite distinct from the green one, it is the cloud for [ɕ] which is showing overlap with the cloud for [ʃ]. Here we have clear evidence of an ongoing vowel merger, i.e. the e-vowel realisations before [ɕ] and [ʃ] are becoming more similar.
 
 ```{r}
 ggplot(merger) +
@@ -532,22 +536,25 @@ Basically, high Pillai scores indicate distinct clouds, low Pillai score indicat
 knitr::include_graphics(rep("pillai_example.png"))
 ```
 
-Let's not calculate the Pillai scores for the overlap.
+Let's now calculate the Pillai scores for the overlap. We extract the rows for [e] before [ɕ] and [ə] before [ʃ], respectively, and merge these to a temporary df 'vowels'. 
 
 ```{r}
+# select rows for the two sounds
 e_ch_vowels <- merger %>%
   filter((labels == "e" & next_label =="ɕ"))
          
 e_sch_vowels <- merger %>%
   filter((labels == "ə" & next_label =="ʃ"))
 
+# new df with the selected rows
 vowels <- rbind(e_ch_vowels, e_sch_vowels)
-         
+
+# calculate the Pillai score
 pillai(cbind(T1, T2) ~ labels, data = vowels)
          
 ```
 
-With this rather low value the Pillai score implies that the two vowel realisations are indeed rather close and merging into each other.
+Remember, the Pillai score ranges between 0 and 1. The lower the score, the closer two groups of realisations. With this rather low value the Pillai score implies that the two vowel realisations are indeed rather close and merging into each other.
 
 # Vowel explorer
 
