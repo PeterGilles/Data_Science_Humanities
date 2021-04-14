@@ -35,7 +35,7 @@ This tutorial will demonstrate how to analyse audio data for acoustic phonetic s
 * Phonetic databases, the case of `emuR` and `EMU-SDMS`, the EMU Speech Database Management System
 * Sample data: the LOD database
 * Queries and requeries
-* Inscpect the database: `serve()`
+* Inspect the database: `serve()`
 * Calculate duration for vowel categories
 * Vowels formants and visualisations with `ggplot2`
 * Calculating the Pillai distance
@@ -46,7 +46,7 @@ This tutorial will demonstrate how to analyse audio data for acoustic phonetic s
 
 The generated HTML page of this tutorial is available [here](https://petergilles.github.io/Data_Science_Humanities/index.nb.html).
 
-This tutorial is organised as  an [R Markdown](http://rmarkdown.rstudio.com) notebook. To execute the code within this notebook (filename `Lecture.Rmd`) it has to be opend in RStudio. When executing code, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can excecute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.). The easiest way to work with this R code is to clone the entire project from this GitHub repository.
+This tutorial is organised as  an [R Markdown](http://rmarkdown.rstudio.com) notebook. To execute the code within this notebook (filename `Lecture.Rmd`) it has to be opened in RStudio. When executing code, the results appear beneath the code. In order to do so, you need to have R and RStudio installed. When this R notebook is loaded into RStudio, you can execute chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*, allowing you to experiment with the code. This handout contains all output of the code (tables, visualisations etc.). The easiest way to work with this R code is to clone the entire project from this GitHub repository.
 
 The following libraries will be needed and have to be installed.
 
@@ -72,7 +72,7 @@ The input is a stream of audio recording alongside of a written representation o
 
 Text for a test of forced alignment: _Den ale Mann ass an dat kaalt Waasser gefall._ (The old man fell into th cold water.) with the corresponding sound file save together in the same directory.
 
-```{r eval=FALSE, include=FALSE}
+```{r eval=FALSE}
 # create an emuDB from this text + audio
 convert_txtCollection(dbName = "testDb",
                       sourceDir = "./testDB",
@@ -85,7 +85,7 @@ db <- load_emuDB("testDb_emuDB")
 ```
 
 
-```{r eval=FALSE, include=FALSE}
+```{r eval=FALSE}
 # run forced aligment using BAS MAUS tools in R
 runBASwebservice_all(db, 
                      transcriptionAttributeDefinitionName = "transcription",
@@ -106,7 +106,7 @@ summary(db)
 
 The result of the query can also be displayed in the EMU Speech Database Management System. 
 
-```{r eval=FALSE, include=FALSE}
+```{r eval=FALSE}
 # open the database in a webviewer
 serve(db)
 ```
@@ -153,7 +153,7 @@ sl
 The result is a `segment list` (`sl`), containing various information about the found item (time, level, name, database info). The result of the query can also be displayed in the EMU Speech Database Management System. 
 
 
-```{r eval=FALSE, include=FALSE}
+```{r eval=FALSE}
 serve(db, seglist = sl)
 ```
 
