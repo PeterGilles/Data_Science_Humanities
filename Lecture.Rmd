@@ -62,6 +62,56 @@ library(joeyr)
 library(knitr)
 ```
 
+
+# Forced alignment
+Before starting to work with the database, let's have a quick overview how the automatic segmentation of audio files into smaller chunks like words and phonetic segments actually is working. 
+
+We are using the  [MAUS tools](https://clarin.phonetik.uni-muenchen.de/BASWebServices/interface) from the University of Munich. Next to a web interface, MAUS segmentation can be called directly from within R through an API.
+
+The input is a stream of audio recording alongside of a written representation of the words spoken in this recording. A trained model of the language, here: Luxembourgish, then is used to map the sounds and words derived from the text to the speech signal. The output is an object with temporal alignments between words and sounds. This is a weak form of speech recognition.
+
+Text for a test of forced alignment: _Den ale Mann ass an dat kaalt Waasser gefall._ (The old man fell into th cold water.) with the corresponding sound file save together in the same directory.
+
+```{r eval=FALSE, include=FALSE}
+# create an emuDB from this text + audio
+convert_txtCollection(dbName = "testDb",
+                      sourceDir = "./testDB",
+                      targetDir = ".")
+```
+
+```{r}
+# load this db
+db <- load_emuDB("testDb_emuDB")
+```
+
+
+```{r eval=FALSE, include=FALSE}
+# run forced aligment using BAS MAUS tools in R
+runBASwebservice_all(db, 
+                     transcriptionAttributeDefinitionName = "transcription",
+                     language ="ltz-LU",
+                     verbose = TRUE,
+                     runMINNI = FALSE,
+                     resume = TRUE, 
+                     patience = 3)
+```
+
+Show a summary of the database.
+
+```{r}
+# display the overview of the structure and content
+summary(db)
+```
+
+
+The result of the query can also be displayed in the EMU Speech Database Management System. 
+
+```{r eval=FALSE, include=FALSE}
+# open the database in a webviewer
+serve(db)
+```
+
+
 # The LOD database
 
 The database contains the audio recordings from the `Lëtzebuerger Online Dictionnaire` (available [here](https://github.com/spellchecker-lu), spoken by one female speaker. The audio files have been automatically segmented with the [MAUS tools](https://clarin.phonetik.uni-muenchen.de/BASWebServices/interface). We thus have a database conisting of textual data, basically words, and the corresponding audio data. The audio data is segmented into words and phonetic segments (sounds).
@@ -70,7 +120,10 @@ This database has been created beforehand. Infos how to create such a database i
 
 While we will be working in this tutorial with the full database (26.000 recordings), a small demo database `lod_emuDB` has been created with 500 recordings which can be used for individual testing.
 
+# Loading a database
+
 We start with loading the database and give an overview of structure and content.
+
 ```{r}
 # load database
 db = load_emuDB("/Users/peter.gilles/Documents/_Daten/LOD-emuDB/lod_emuDB")
@@ -100,7 +153,7 @@ sl
 The result is a `segment list` (`sl`), containing various information about the found item (time, level, name, database info). The result of the query can also be displayed in the EMU Speech Database Management System. 
 
 
-```{r, rexample:tutorial_serve, eval=FALSE}
+```{r eval=FALSE, include=FALSE}
 serve(db, seglist = sl)
 ```
 
@@ -110,19 +163,20 @@ The GUI will open in the `Viewer` pane of RStudio or you can open it in a browse
 knitr::include_graphics(rep("emu-sdms.png"))
 ```
 
-Here we can also display the hiearchical structure for this database item, which is accessed during queries. `bundle` is the top-level, representing the entire audio file. 
+Here we can also display the hierarchical structure for this database item, which is accessed during queries. `bundle` is the top-level, representing the entire audio file. 
 
-The `ORT` level contains the nodes for the individual words in the `bundle`, here the two words `Aarbecht` and `Aarbechten`. The dependend level then is `MAU` (=`Munich Automatic Unit`) representing the single sounds of the words in `ORT`. 
+The `ORT` level contains the nodes for the individual words in the `bundle`, here the two words `Aarbecht` and `Aarbechten`. The dependent level then is `MAU` (=`Munich Automatic Unit`) representing the single sounds of the words in `ORT`. 
 
 ```{r echo=FALSE}
 knitr::include_graphics(rep("hierarchy.png"))
 ```
 
-Two aspects render emuR query system extremly powerful: the use of regular expressions (including negation and other extensions) and the combinated query on different levels of the database.
+Two aspects render emuR query system extremely powerful: the use of regular expressions (including negation and other extensions) and the combined query on different levels of the database.
 
 Let's try more complex queries:
 
-- regular expression, operator `=~`, words beginning with `Aarbecht...`
+Regular expression, operator `=~`, words beginning with `Aarbecht...`
+
 ```{r}
 sl = query(db, query = "[ ORT =~ 'Aarbecht.*']")
 sl
@@ -184,15 +238,17 @@ sl_req_n <- requery_seq(db,
 sl_req_n
 ```
 
-Groups auf sounds can be grouped together to `label groups`, e.g. all long monophthongs (`"iː", "uː", "aː", "oː", "ɔː", "ɛː", "eː"`) or all short monophthongs (`"i", "u", "ɑ", "o", "æ", "e", "ə", "ɐ"`).
+Groups of sounds can be grouped together to `label groups`:
+- all long monophthongs:  `"iː", "uː", "aː", "oː", "ɔː", "ɛː", "eː"`
+- all short monophthongs: `"i", "u", "ɑ", "o", "æ", "e", "ə", "ɐ"`
 
 ```{r}
-# query all "m" phonetic items
+# query all long monophthongs
 sl = query(db, "MAU == longMonophthongs")
 sl
 ```
 
-With the query the user can compile the data frame from the database which then forms the subset for the phonetic analysis. We can select e.g. all instances of certain (or all) vowels, specifying the context before or after etc. etc.
+With the query the user can compile a data frame from the database which then forms the subset for further phonetic analysis. We can select e.g. all instances of certain (or all) vowels, specifying the context before or after etc. etc.
 
 Of course, querying for individual segments in the audio file like words or sounds is possible only, if this information has been added to the database before.
 
@@ -209,7 +265,7 @@ sl = query(db, "MAU == aː")
 sl = sl[100:105, ]
 ```
 
-The data for the oscillogram is stored in the SSF track `dft`, which is extracted by `get_trackdata`. The result is another R dataframe.
+The data for the oscillogram is stored in the SSF track `dft`, which is extracted by `get_trackdata`. The result is another R data frame.
 
 ```{r}
 # get "dft" track data for these segments
@@ -228,7 +284,7 @@ ggplot(data = a_vowels) +
   aes(y = T1, x = times_rel) + 
   # line chart
   geom_line() + 
-  # sl_rowIdx groups all rows in a dataframe belonging to the same segment
+  # sl_rowIdx groups all rows in a data frame belonging to the same segment
   # labels contains the label of the segment
   facet_wrap(~ sl_rowIdx + labels)
 ```
@@ -241,8 +297,7 @@ sl = query(db, query = "[ ORT =~ 'Fluch.*']")
 # get "f0" track data for these segments, in this case calculated on the fly
 fluch_words = get_trackdata(emuDBhandle = db,
                          seglist = sl,
-                         # using emuR's Michel Scheffers’ Modified Harmonic
-                         # Sieve algorithm 
+                         # using emuR's Michel Scheffers’ Modified Harmonic Sieve algorithm 
                          onTheFlyFunctionName = "mhsF0",
                          verbose = TRUE)
 ```
@@ -257,7 +312,7 @@ ggplot(data = fluch_words) +
   aes(y = T1, x = times_rel) + 
   # line chart
   geom_line() + 
-  # sl_rowIdx groups all rows in a dataframe belonging to the same segment
+  # sl_rowIdx groups all rows in a data frame belonging to the same segment
   # labels contains the label of the segment
   facet_wrap(~ sl_rowIdx + labels)
 ```
