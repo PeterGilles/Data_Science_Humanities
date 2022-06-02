@@ -11,6 +11,12 @@ output:
     toc: yes
     toc_depth: 2
     number_sections: yes
+knit: (function(input_file, encoding) {
+    out_dir <- 'docs';
+    rmarkdown::render(input_file,
+      encoding=encoding,
+      output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+
 url: https://twitter.com/PeterGilles
 subtitle: 'Lecture for class: Data science in the Humanities'
 editor_options:
@@ -240,7 +246,7 @@ The first task is to extract the time-amplitude waveform representation (oscillo
 
 ```{r}
 # query all "aː" phonetic items
-# 
+
 sl = query(db, "MAU == aː")
 # instead of all 7,000 vowels take only 6
 sl = sl[100:105, ]
