@@ -1,6 +1,6 @@
 {
   "name": "testDb",
-  "UUID": "f6157ad6-119f-4242-9e05-41f376e31e8a",
+  "UUID": "93d5a88c-897b-4a1b-a4b5-f771b107b7df",
   "mediafileExtension": "wav",
   "ssffTrackDefinitions": [],
   "levelDefinitions": [
@@ -26,17 +26,17 @@
         {
           "name": "ORT",
           "type": "STRING",
-          "description": "Tokenized and normalized orthography level automatically derived from 'transcription' by BAS webservice runG2P (1.118), on 2021-04-14 13:32:58, with the following parameters: ()"
+          "description": "Tokenized and normalized orthography level automatically derived from 'transcription' by BAS webservice runG2P (1.125), on 2022-06-02 11:25:21, with the following parameters: ()"
         },
         {
           "name": "KAN",
           "type": "STRING",
-          "description": "Canonical pronunciation word forms automatically derived from 'ORT' by BAS webservice runG2P (1.118), on 2021-04-14 13:33:01, with the following parameters: (embed maus)"
+          "description": "Canonical pronunciation word forms automatically derived from 'ORT' by BAS webservice runG2P (1.125), on 2022-06-02 11:25:24, with the following parameters: (embed maus)"
         },
         {
           "name": "KAS",
           "type": "STRING",
-          "description": "Syllabified canonical pronunciation word forms automatically derived from 'KAN' by BAS webservice runPho2Syl (1.31), on 2021-04-14 13:33:04, with the following parameters: ()"
+          "description": "Syllabified canonical pronunciation word forms automatically derived from 'KAN' by BAS webservice runPho2Syl (1.32), on 2022-06-02 11:25:29, with the following parameters: ()"
         }
       ]
     },
@@ -47,7 +47,7 @@
         {
           "name": "MAU",
           "type": "STRING",
-          "description": "Phonetic segmentation by MAUS automatically derived from 'KAN' by BAS webservice runMAUS (5.94), on 2021-04-14 13:33:03, with the following parameters: (USETRN false)"
+          "description": "Phonetic segmentation by MAUS automatically derived from 'KAN' by BAS webservice runMAUS (5.117), on 2022-06-02 11:25:26, with the following parameters: (USETRN false)"
         }
       ]
     },
@@ -58,7 +58,7 @@
         {
           "name": "MAS",
           "type": "STRING",
-          "description": "Syllable segmentation automatically derived from 'MAU' by BAS webservice runPho2Syl (1.31), on 2021-04-14 13:33:06, with the following parameters: (wsync yes)"
+          "description": "Syllable segmentation automatically derived from 'MAU' by BAS webservice runPho2Syl (1.32), on 2022-06-02 11:25:30, with the following parameters: (wsync yes)"
         }
       ]
     }
